@@ -10,23 +10,23 @@ An on-demand cloud React/Vite sandbox platform built on **Kubernetes**, **Node.j
 
 ```mermaid
 flowchart LR
-    U[Browser / Client] -->|"/api/sandbox/*"| ING_O[Ingress: orchestrator-ingress]
-    ING_O --> ORCH[Orchestrator API :3000]
-    ORCH -->|"K8s API (create / patch / delete)"| POD
+    U["Browser / Client"] -->|"/api/sandbox/*"| ING_O["Ingress: orchestrator-ingress"]
+    ING_O --> ORCH["Orchestrator API :3000"]
+    ORCH -->|"K8s API create / patch / delete"| POD
 
-    U -->|"http://{id}.preview.localhost"| ING_S[Ingress: sandbox-ingress-{id}]
-    U -->|"ws://{id}.agent.localhost (AGENT_TOKEN)"| ING_S
+    U -->|"http://id.preview.localhost"| ING_S["Ingress: sandbox-ingress-id"]
+    U -->|"ws://id.agent.localhost with AGENT_TOKEN"| ING_S
     ING_S -->|":5173"| VITE
     ING_S -->|":3000"| AGENT
 
-    subgraph POD["Pod: sandbox-pod-{id} (automountServiceAccountToken: false)"]
-        INIT["Init: sync-init (seed.js)"] -.->|"seeds & npm install"| VOL[(emptyDir: /workspace)]
+    subgraph POD["Pod: sandbox-pod-id (automountServiceAccountToken: false)"]
+        INIT["Init: sync-init (seed.js)"] -.->|"seeds and npm install"| VOL[("emptyDir: /workspace")]
         VITE["sandbox-container (Vite :5173)"] --> VOL
         AGENT["sandbox-agent (node-pty :3000)"] --> VOL
         SYNC["sync-sidecar (chokidar watch.js)"] --> VOL
     end
 
-    INIT <-->|"restore / seed template"| S3[(AWS S3)]
+    INIT <-->|"restore / seed template"| S3[("AWS S3")]
     SYNC -->|"upload / delete"| S3
 ```
 
